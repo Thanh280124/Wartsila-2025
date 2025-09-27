@@ -6,15 +6,17 @@ const App = () => {
   const [exportStatus, setExportStatus] = useState('');
 
   const wartsilaData = {
-    'Marine Solutions': {
-      total: 1856,
-      segments: [
-        { name: 'Heavy Fuel Oil', value: 742, color: '#1F2937', percent: 40.0 },
-        { name: 'Marine Gas Oil', value: 557, color: '#374151', percent: 30.0 },
-        { name: 'LNG', value: 371, color: '#6B7280', percent: 20.0 },
-        { name: 'Hybrid Electric', value: 186, color: '#10B981', percent: 10.0 }
-      ]
-    },
+  'Operations': {
+  total: 1856,
+  segments: [
+    { name: 'CO2 Emissions', value: 519, color: '#1F2937', percent: 28.0 },
+    { name: 'Energy Generation', value: 390, color: '#374151', percent: 21.0 },
+    { name: 'Fuel Consumption', value: 260, color: '#6B7280', percent: 14.0 },
+    { name: 'Efficiency Contribution', value: 130, color: '#10B981', percent: 7.0 },
+    { name: 'Renewable Share', value: 557, color: '#151678', percent: 30.0 }
+  ]
+}
+,
     'Energy Solutions': {
       total: 2143,
       segments: [
@@ -369,7 +371,7 @@ const App = () => {
           {segments.map((segment) => (
             <div key={segment.name} className="flex items-center text-xs">
               <div 
-                className="w-2 h-2 rounded-full mr-3"
+                className="w-2 h-2 rounded-full mr-4"
                 style={{ backgroundColor: segment.color }}
               ></div>
               <span className="text-gray-700">{segment.name}</span>
@@ -582,7 +584,7 @@ const App = () => {
                   onClick={() => exportToPDF('EU')}
                   className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
                 >
-                  📄 Export PDF (EU)
+                  📄 Export TxT (EU)
                 </button>
                 <button 
                   onClick={() => exportToExcel('US')}
