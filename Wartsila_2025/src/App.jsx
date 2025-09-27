@@ -5,6 +5,47 @@ const App = () => {
   const [hoveredChart, setHoveredChart] = useState(null);
   const [exportStatus, setExportStatus] = useState('');
 
+  const wartsilaData = {
+    'Marine Solutions': {
+      total: 1856,
+      segments: [
+        { name: 'Heavy Fuel Oil', value: 742, color: '#1F2937', percent: 40.0 },
+        { name: 'Marine Gas Oil', value: 557, color: '#374151', percent: 30.0 },
+        { name: 'LNG', value: 371, color: '#6B7280', percent: 20.0 },
+        { name: 'Hybrid Electric', value: 186, color: '#10B981', percent: 10.0 }
+      ]
+    },
+    'Energy Solutions': {
+      total: 2143,
+      segments: [
+        { name: 'Natural Gas', value: 857, color: '#6B7280', percent: 40.0 },
+        { name: 'Diesel', value: 643, color: '#374151', percent: 30.0 },
+        { name: 'Solar + Storage', value: 429, color: '#F59E0B', percent: 20.0 },
+        { name: 'Wind Power', value: 214, color: '#10B981', percent: 10.0 }
+      ]
+    },
+   
+  };
+
+  const totalEmissions = Object.values(wartsilaData).reduce((sum, d) => sum + d.total, 0);
+
+  const allSegments = [];
+  Object.entries(wartsilaData).forEach(([unit, data]) => {
+    data.segments.forEach(seg => {
+      allSegments.push({
+        name: `${seg.name}`,
+        value: seg.value,
+        color: seg.color,
+        percent: Math.round((seg.value / totalEmissions) * 1000) / 10
+      });
+    });
+  });
+
+  const wartsilaTotal = {
+    total: totalEmissions,
+    segments: allSegments
+  };
+
   // Scenario configurations with real impact data
   const scenarioData = {
     current: {
@@ -273,9 +314,8 @@ const App = () => {
     );
   };
 
-  const DonutChart = ({ region, data, onHover, onLeave }) => {
+  const DonutChart = ({ region, data, onHover, onLeave, radius = 60 }) => {
     const { total, segments } = data;
-    const radius = 60;
     const strokeWidth = 20;
     const normalizedRadius = radius - strokeWidth * 0.5;
     const circumference = normalizedRadius * 2 * Math.PI;
@@ -286,10 +326,10 @@ const App = () => {
       <div className="flex flex-col items-center bg-white rounded-lg p-6 shadow-lg">
         <h3 className="text-xl font-bold mb-4 text-gray-800">{region}</h3>
         <div className="relative">
-          <svg width={radius * 2} height={radius * 2} className="transform -rotate-90">
+          <svg width={radius * 2 + strokeWidth} height={radius * 2 + strokeWidth} className="transform -rotate-90">
             <circle
-              cx={radius}
-              cy={radius}
+              cx={radius + strokeWidth / 2}
+              cy={radius + strokeWidth / 2}
               r={normalizedRadius}
               stroke="#f3f4f6"
               strokeWidth={strokeWidth}
@@ -303,8 +343,8 @@ const App = () => {
               return (
                 <circle
                   key={segment.name}
-                  cx={radius}
-                  cy={radius}
+                  cx={radius + strokeWidth / 2}
+                  cy={radius + strokeWidth / 2}
                   r={normalizedRadius}
                   stroke={segment.color}
                   strokeWidth={strokeWidth}
@@ -320,16 +360,16 @@ const App = () => {
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <div className="text-sm font-bold text-gray-800">{total}</div>
-              <div className="text-xs text-gray-600">tCO₂e</div>
+              <div className={`font-bold text-gray-800 ${radius > 60 ? 'text-2xl' : 'text-sm'}`}>{total}</div>
+              <div className={`text-gray-600 ${radius > 60 ? 'text-lg' : 'text-xs'}`}>tCO₂e</div>
             </div>
           </div>
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-2 w-full">
+        <div className="mt-4 grid grid-cols-4 gap-2 w-full">
           {segments.map((segment) => (
             <div key={segment.name} className="flex items-center text-xs">
               <div 
-                className="w-3 h-3 rounded-full mr-2"
+                className="w-2 h-2 rounded-full mr-3"
                 style={{ backgroundColor: segment.color }}
               ></div>
               <span className="text-gray-700">{segment.name}</span>
@@ -417,6 +457,67 @@ const App = () => {
                 />
               ))}
             </div>
+
+            {/* Wartsila Company Donut Charts */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Wartsila Business Units - Emissions Overview</h2>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                  <span className="text-sm text-gray-600">Company Portfolio Analysis</span>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-8">
+                <DonutChart
+                  region="Total"
+                  data={wartsilaTotal}
+                  onHover={(region, segment) => setHoveredChart({ region, segment })}
+                  onLeave={() => setHoveredChart(null)}
+                  radius={70}
+                />
+                <div className="space-y-6">
+                  {Object.entries(wartsilaData).map(([unit, data]) => (
+                    <div key={unit}>
+                      <h3 className="text-lg font-semibold mb-2">{unit}</h3>
+                      <div className="space-y-1">
+                        {data.segments.map(segment => (
+                          <div key={segment.name} className="flex items-center justify-between text-sm">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 rounded-full mr-2" style={{backgroundColor: segment.color}}></div>
+                              <span>{segment.name}</span>
+                            </div>
+                            <span>{segment.value} tCO₂e ({segment.percent}%)</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-2 text-right font-semibold">Total: {data.total} tCO₂e</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Wartsila Summary Stats */}
+              <div className="mt-8 grid grid-cols-4 gap-4 pt-6 border-t border-gray-200">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">{totalEmissions.toLocaleString()}</div>
+                  <div className="text-sm text-gray-600">Total Emissions (tCO₂e)</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">12.5%</div>
+                  <div className="text-sm text-gray-600">Renewable Mix</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-orange-600">4</div>
+                  <div className="text-sm text-gray-600">Business Units</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">87%</div>
+                  <div className="text-sm text-gray-600">Efficiency Target</div>
+                </div>
+              </div>
+            </div>
+            
 
             {/* Tooltip */}
             {hoveredChart && (
